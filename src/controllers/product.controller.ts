@@ -17,7 +17,7 @@ class ProductController {
       const products = await db.Product.findAll({
         include: [{
           model: db.Category,
-          as: 'category'
+          as: 'categoryInfo'  // Cambiado de 'category' a 'categoryInfo'
         }]
       });
 
@@ -47,7 +47,7 @@ class ProductController {
       const product = await db.Product.findByPk(id, {
         include: [{
           model: db.Category,
-          as: 'category'
+          as: 'categoryInfo'  // Cambiado de 'category' a 'categoryInfo'
         }]
       });
 
@@ -74,10 +74,10 @@ class ProductController {
       const { categoryId } = req.params;
       
       const products = await db.Product.findAll({
-        where: { category_id: categoryId },
+        where: { categoria: categoryId },
         include: [{
           model: db.Category,
-          as: 'category'
+          as: 'categoryInfo'  // Cambiado de 'category' a 'categoryInfo'
         }]
       });
 
@@ -101,13 +101,13 @@ class ProductController {
    */
   async store(req: Request, res: Response): Promise<Response> {
     try {
-      const { nombre, descripcion, precio, category_id, imagen } = req.body;
+      const { nombre, descripcion, precio, categoria_id, imagen } = req.body;
 
       const newProduct = await db.Product.create({
         nombre,
         descripcion,
         precio,
-        category_id,
+        categoria_id,
         imagen
       });
 
@@ -127,7 +127,7 @@ class ProductController {
   async update(req: Request, res: Response): Promise<Response> {
     try {
       const { id } = req.params;
-      const { nombre, descripcion, precio, category_id, imagen } = req.body;
+      const { nombre, descripcion, precio, categoria_id, imagen } = req.body;
 
       const product = await db.Product.findByPk(id);
 
@@ -139,7 +139,7 @@ class ProductController {
         nombre,
         descripcion,
         precio,
-        category_id,
+        categoria_id,
         imagen
       });
 
@@ -177,6 +177,51 @@ class ProductController {
       });
     }
   }
+
+  /**
+   * Obtener Colors disponibles del producto
+   */
+  
+  async getColors(req: Request, res: Response): Promise<Response> {
+    try {
+      const { id } = req.params;
+      const productId = parseInt(id);
+      
+      if (isNaN(productId)) {
+        return res.status(400).json({ message: 'ID de producto no válido' });
+      }
+      
+      // Primero intentamos obtener colores específicos para este producto de la tabla lineapedido
+      const colors = await db.sequelize.query(
+        'SELECT DISTINCT color FROM lineapedido WHERE idprod = :productId',
+        {
+          replacements: { productId },
+          type: db.sequelize.QueryTypes.SELECT
+        }
+      );
+      
+      // Si no hay colores específicos para este producto, usamos todos los colores disponibles
+      if (!colors || colors.length === 0) {
+        const allColors = await db.sequelize.query(
+          'SELECT id, nombre as color, codigo_color FROM product_colors',
+          {
+            type: db.sequelize.QueryTypes.SELECT
+          }
+        );
+        
+        return res.status(200).json(allColors);
+      }
+      
+      return res.status(200).json(colors);
+    } catch (error) {
+      console.error('Error al obtener colores del producto:', error);
+      return res.status(500).json({ 
+        message: 'Error al obtener colores', 
+        error: (error as Error).message 
+      });
+    }
+  }
+  
 
   /**
    * Obtener imagen del producto

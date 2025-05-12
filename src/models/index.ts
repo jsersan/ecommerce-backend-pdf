@@ -1,3 +1,4 @@
+// src/models/index.ts
 import { Sequelize, DataTypes } from 'sequelize';
 import dotenv from 'dotenv';
 
@@ -7,23 +8,18 @@ dotenv.config();
 // Importar definiciones de modelos
 import productModel from './product.model';
 import categoryModel from './category.model';
-import productColorModel from './product-color.model';
+// Comentamos esta importación
+// import productColorModel from './product-color.model';
 
-// Crear instancia de Sequelize usando directamente las variables de entorno
+// Crear instancia de Sequelize
 const sequelize = new Sequelize(
   process.env.DB_NAME!,
   process.env.DB_USER!,
-  process.env.DB_PASS!, // Nota: aquí usamos DB_PASS como está en tu .env
+  process.env.DB_PASS!, 
   {
     host: process.env.DB_HOST!,
-    dialect: 'mysql', // Especifica el dialecto directamente
-    logging: console.log, // Para debugging
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000
-    }
+    dialect: 'mysql',
+    logging: console.log
   }
 );
 
@@ -33,7 +29,7 @@ const db: any = {
   Sequelize,
   Product: productModel(sequelize, DataTypes),
   Category: categoryModel(sequelize, DataTypes),
-  ProductColor: productColorModel(sequelize, DataTypes)
+  // No incluimos ProductColor por ahora
 };
 
 // Establecer asociaciones entre modelos

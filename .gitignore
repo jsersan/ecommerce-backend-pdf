@@ -51,3 +51,4 @@ uploads/*
 # Archivos de bloqueo de versiones (opcional, según tu política de equipo)
 # yarn.lock
 # package-lock.json
+node_modules

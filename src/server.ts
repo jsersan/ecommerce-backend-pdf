@@ -22,9 +22,18 @@ const PORT = process.env.PORT || 3000;
 // Configurar middleware
 // Configurar CORS para permitir solicitudes desde tu aplicación Angular
 app.use(cors({
-  origin: 'http://localhost:4200', // URL de tu aplicación Angular
-  credentials: true
+  origin: ['http://localhost:4200', 'http://127.0.0.1:4200'], // URLs de tu aplicación Angular
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
+// Mostrar las peticiones en la consola (para debugging)
+app.use((req: Request, res: Response, next: NextFunction) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
+
 app.use(express.json()); // Para parsear application/json
 app.use(express.urlencoded({ extended: true })); // Para parsear application/x-www-form-urlencoded
 
@@ -55,6 +64,7 @@ db.sequelize.authenticate()
     app.listen(PORT, () => {
       console.log(`Servidor ejecutándose en el puerto ${PORT}`);
       console.log(`Entorno: ${process.env.NODE_ENV}`);
+      console.log(`API disponible en: http://localhost:${PORT}/api`);
     });
   })
   .catch((err: Error) => {

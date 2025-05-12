@@ -15,22 +15,24 @@ export default function(sequelize: Sequelize, dataTypes: typeof DataTypes): Mode
     public nombre!: string;
     public descripcion!: string;
     public precio!: number;
-    public category_id!: number;
+    public categoria_id!: number;
     public imagen!: string;
     public carpetaimg?: string;
-    public category?: any;
+    public categoria?: any;
     public readonly createdAt!: Date;
     public readonly updatedAt!: Date;
-
+  
     /**
      * Override del método toJSON para incluir carpetaimg automáticamente
      */
     public toJSON(): any {
       const values = Object.assign({}, this.get());
       
-      // Mapear el category_id a carpetaimg
-      if (values.category_id) {
+      // Mapear la categoría a carpetaimg
+      if (values.categoria) {
         values.carpetaimg = this.getCarpetaImg();
+        // Asignar categoria_id para mantener compatibilidad con la interfaz
+        values.categoria_id = values.categoria;
       }
       
       return values;
@@ -41,13 +43,22 @@ export default function(sequelize: Sequelize, dataTypes: typeof DataTypes): Mode
      */
     public getCarpetaImg(): string {
       const categoryMap: { [key: number]: string } = {
-        9: 'cuadros',
-        10: 'escultura',
-        11: 'libro',
-        12: 'musica'
+        1: 'anillo',
+        2: 'barbell',
+        3: 'tuneles',
+        4: 'plug',
+        5: 'expander',
+        6: 'banana',
+        7: 'labret',
+        8: 'barbell',
+        9: 'circular-barbel',
+        10: 'anillo',
+        11: 'piercing',
+        12: 'dilataciones'
       };
 
-      return categoryMap[this.category_id] || 'default';
+      const categoria = this.get('categoria') as number;
+      return categoryMap[categoria] || 'default';
     }
   }
 
@@ -93,8 +104,9 @@ export default function(sequelize: Sequelize, dataTypes: typeof DataTypes): Mode
         }
       }
     },
-    category_id: {
+    categoria_id: {
       type: dataTypes.INTEGER,
+      field: 'categoria', // Campo real en la base de datos
       allowNull: false,
       validate: {
         notNull: {
@@ -109,8 +121,8 @@ export default function(sequelize: Sequelize, dataTypes: typeof DataTypes): Mode
   }, {
     sequelize,
     modelName: 'Product',
-    tableName: 'products',
-    timestamps: true,
+    tableName: 'producto',
+    timestamps: false,
     underscored: false,
     paranoid: false,
     freezeTableName: true,
@@ -121,8 +133,8 @@ export default function(sequelize: Sequelize, dataTypes: typeof DataTypes): Mode
    */
   (ProductModel as any).associate = (models: any) => {
     ProductModel.belongsTo(models.Category, {
-      foreignKey: 'category_id',
-      as: 'category'
+      foreignKey: 'categoria',  // Campo real en la base de datos
+      as: 'categoryInfo'        // Cambiado a 'categoryInfo' para evitar colisión
     });
   };
 

@@ -1,0 +1,32 @@
+// src/models/product-color.model.ts - versión simplificada
+import { Model, DataTypes, Sequelize } from 'sequelize';
+
+export default function(sequelize: Sequelize, dataTypes: typeof DataTypes) {
+  // Definir el modelo de forma simple sin asociaciones iniciales
+  const ProductColor = sequelize.define('ProductColor', {
+    id: {
+      type: dataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
+    },
+    product_id: {
+      type: dataTypes.INTEGER,
+      allowNull: false
+    },
+    color_id: {
+      type: dataTypes.INTEGER,
+      allowNull: false
+    }
+  }, {
+    tableName: 'product_colors',
+    timestamps: true
+  });
+
+  // Definir un método associate vacío o muy simple
+  (ProductColor as any).associate = function() {
+    // Dejamos esto vacío por ahora
+    console.log('ProductColor associations will be defined later');
+  };
+
+  return ProductColor;
+}
