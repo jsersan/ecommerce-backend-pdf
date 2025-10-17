@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: tatoodenda-backend
+    env: node
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: DB_HOST
+        generateValue: true
+      - key: DB_USER
+        generateValue: true
+      - key: DB_PASS
+        generateValue: true
+      - key: DB_NAME
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true

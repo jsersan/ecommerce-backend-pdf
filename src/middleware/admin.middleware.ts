@@ -1,50 +1,81 @@
 /**
  * Middleware de Administrador
- * Verifica que el usuario autenticado tenga permisos de administrador
+ * Verifica que el usuario tenga permisos de administrador
  */
 import { Request, Response, NextFunction } from 'express';
 import db from '../models';
 
-// Referencia al modelo User
-const User = db.User;
+// ✅ Extender la interfaz Request para incluir userId
+declare global {
+  namespace Express {
+    interface Request {
+      userId?: number;
+    }
+  }
+}
 
 /**
  * Middleware para verificar permisos de administrador
- * Debe utilizarse después del middleware verifyToken
+ * Se usa en rutas que requieren autenticación + permisos admin
+ * 
+ * Ejemplo de uso en rutas:
+ * router.delete('/:id', [verifyToken, isAdmin], controller.delete);
  */
-export const isAdmin = async (req: Request, res: Response, next: NextFunction): Promise<void | Response> => {
+export const isAdmin = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-    // Verificar que el usuario esté autenticado
-    if (!req.userId) {
-      return res.status(401).json({ message: 'Usuario no autenticado' });
-    }
-    
-    // Buscar el usuario en la base de datos
-    const user = await User.findByPk(req.userId);
-    
-    if (!user) {
-      return res.status(404).json({ message: 'Usuario no encontrado' });
-    }
-    
-    // Verificar si el usuario es administrador
-    // Consideramos admin tanto al usuario con nombre 'admin' como al que tiene rol 'admin'
-    if (user.get('username') === 'admin' || user.get('role') === 'admin') {
-      // Usuario es admin, continuar
-      next();
+    console.log(`👑 Verificando permisos de admin`);
+
+    // ✅ Ahora TypeScript reconoce userId en req
+    const userId = req.userId;
+
+    if (!userId) {
+      console.warn('⚠️ No hay userId en la request');
+      res.status(401).json({
+        message: 'No autenticado'
+      });
       return;
     }
-    
-    // Usuario no es admin, denegar acceso
-    res.status(403).json({ 
-      message: 'Acceso denegado',
-      details: 'Se requieren permisos de administrador para esta operación' 
-    });
-  } catch (err) {
-    console.error('Error al verificar permisos de administrador:', err);
-    if (err instanceof Error) {
-      res.status(500).json({ message: err.message });
-    } else {
-      res.status(500).json({ message: 'Error desconocido' });
+
+    console.log(`   Verificando usuario ID: ${userId}`);
+
+    // Buscar el usuario
+    const user = await db.User.findByPk(userId);
+
+    if (!user) {
+      console.warn(`⚠️ Usuario no encontrado: ${userId}`);
+      res.status(404).json({
+        message: 'Usuario no encontrado'
+      });
+      return;
     }
+
+    // Verificar si es admin
+    const role = user.get('role');
+    console.log(`   Rol del usuario: ${role}`);
+
+    if (role !== 'admin') {
+      console.warn(`⚠️ Usuario no es admin: ${user.get('username')}`);
+      res.status(403).json({
+        message: 'Acceso denegado. Se requieren permisos de administrador.'
+      });
+      return;
+    }
+
+    console.log(`✅ Usuario es admin: ${user.get('username')}`);
+
+    // Continuar con la siguiente función
+    next();
+  } catch (error) {
+    console.error('❌ Error en middleware de admin:', error);
+    res.status(500).json({
+      message: 'Error verificando permisos',
+      error: (error as Error).message
+    });
   }
 };
+
+export default { isAdmin };
