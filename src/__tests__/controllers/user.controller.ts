@@ -147,7 +147,7 @@ describe('UserController', () => {
             id: 1,
             password: 'hashed_password',
           };
-          return data[key];
+          return (data as any)[key];
         }),
         toJSON: jest.fn().mockReturnValue({
           id: 1,
@@ -190,7 +190,7 @@ describe('UserController', () => {
             id: 1,
             password: 'hashed_password',
           };
-          return data[key];
+          return (data as any)[key];
         }),
       };
       
